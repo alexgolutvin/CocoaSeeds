@@ -98,6 +98,19 @@ module Xcodeproj::Project::Object
       end
       nil
     end
+    #
+    # @return 'Copy Bundle Recources' or `nil`
+    #
+    def copy_bundle_recources()
+      self.build_phases.each do |phase|
+        if phase.kind_of?(Xcodeproj::Project::Object::PBXResourcesBuildPhase)
+          return phase
+        end
+      end
+      nil
+    end
+    #
+
   end
 
   class PBXLegacyTarget
@@ -112,6 +125,20 @@ module Xcodeproj::Project::Object
       end
       nil
     end
+
+    # @return 'Copy Bundle Recources' or `nil`
+    #
+    def copy_bundle_recources()
+      self.build_phases.each do |phase|
+        puts "phase #{phase}"
+        if phase.kind_of?(Xcodeproj::Project::Object::PBXResourcesBuildPhase)
+          return phase
+        end
+      end
+      nil
+    end
+    
+
   end
 
   class PBXSourcesBuildPhase
@@ -142,4 +169,20 @@ module Xcodeproj::Project::Object
     end
 
   end
+
+  class PBXResourcesBuildPhase
+
+    def add_file_reference_with_uuid(file_ref, uuid, avoid_duplicates = false)
+      if avoid_duplicates && existing = build_file(file_ref)
+        existing
+      else
+        build_file = project.new_with_uuid(PBXBuildFile, uuid)
+        build_file.file_ref = file_ref
+        files << build_file
+        build_file
+      end
+    end
+
+  end
+
 end

@@ -21,6 +21,10 @@ module Seeds
     #
     attr_accessor :files
 
+    # @return [Array<String>] the copy bundle source file patterns of the seed
+    #
+    attr_accessor :bundle_files
+
     # @return [Array<String>] the source file patterns which will be excluded
     #
     attr_accessor :exclude_files

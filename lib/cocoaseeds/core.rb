@@ -246,11 +246,13 @@ module Seeds
                 "#{repo}: Version and commit are both specified."
             end
             seed.version = tag
-            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
+            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
             seed.exclude_files = options[:exclude_files] || []
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
+            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
@@ -293,10 +295,12 @@ module Seeds
                 "#{repo}: Version and commit are both specified."
             end
             seed.version = tag
-            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
+            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
+            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
@@ -324,30 +328,28 @@ module Seeds
     # @!visibility private
     #
     def git(repo, tag, options={})
-		self.validate_project
+        self.validate_project
         if not @current_target_name  # apply to all targets
           target *self.project.targets.map(&:name) do
             send(__callee__, repo, tag, options)
           end
-        elsif repo.split('/').count != 2
-          raise Seeds::Exception.new\
-          "#{repo}: Git should have both username and repo name.\n"\
-          "    (e.g. `devxoul/JLToast`)"
         else
           seed = Seeds::Seed::Git.new
           seed.url = "#{repo}"
-          seed.name = repo.split('/')[1]
+          seed.name = repo.split('/').last
           if tag.is_a?(String)
             if options[:commit]
               raise Seeds::Exception.new\
                 "#{repo}: Version and commit are both specified."
             end
             seed.version = tag
-            seed.files = options[:files] || '**/*.{h,m,mm,swift}'
+            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
+            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
             seed.exclude_files = options[:exclude_files] || []
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift}'
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
+            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
@@ -580,6 +582,9 @@ module Seeds
           next
         end
 
+        
+        bundle = target.copy_bundle_recources
+
         # remove zombie build files
         phase.files_references.each do |file|
           begin
@@ -587,6 +592,17 @@ module Seeds
           rescue
             phase.files.each do |build_file|
               phase.files.delete(build_file) if build_file.file_ref == file
+            end
+          end
+        end
+      
+        # remove zombie bundle files
+        bundle.files_references.each do |file|
+          begin
+            file.real_path
+          rescue
+            bundle.files.each do |bundle_file|
+              bundle.files.delete(bundle_file) if bundle_file.file_ref == file
             end
           end
         end
@@ -603,9 +619,16 @@ module Seeds
           end
         end
 
+
         self.file_references.each do |file|
+
           removings.each do |seed_names|
             next if not seed_names.include?(file.parent.name)
+            
+            bundle.files.each do |bundle_file|
+              bundle.files.delete(bundle_file) if bundle_file.file_ref == file              
+            end
+          
             phase.files.each do |build_file|
               phase.files.delete(build_file) if build_file.file_ref == file
             end
@@ -615,7 +638,13 @@ module Seeds
             next if file.name.end_with? ".h"
             next if not seed_names.include?(file.parent.name)
             uuid = Xcodeproj::uuid_with_name "#{target.name}:#{file.name}"
-            phase.add_file_reference_with_uuid(file, uuid, true)
+               
+            if self.seeds[seed_names].bundle_files.any? { |s| file.name.end_with? s }
+              bundle.add_file_reference_with_uuid(file, uuid, true)
+            else 
+              phase.add_file_reference_with_uuid(file, uuid, true)
+            end
+
           end
         end
       end
