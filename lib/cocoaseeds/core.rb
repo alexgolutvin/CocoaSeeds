@@ -246,14 +246,15 @@ module Seeds
                 "#{repo}: Version and commit are both specified."
             end
             seed.version = tag
-            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
-            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
-            seed.exclude_files = options[:exclude_files] || []
+            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets,bundle}'
+            seed.resources = options[:resources] || [".storyboard", ".xib", ".strings", ".xcassets", ".bundle"]
+            seed.exclude_files = options[:resources] || []
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
-            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets,bundle}'
+            seed.resources = options[:resources] || [".storyboard", ".xib", ".strings", ".xcassets", ".bundle"]
             seed.exclude_files = options[:exclude_files] || []
+
           end
           if seed.files.kind_of?(String)
             seed.files = [seed.files]
@@ -295,12 +296,12 @@ module Seeds
                 "#{repo}: Version and commit are both specified."
             end
             seed.version = tag
-            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
-            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
+            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets,bundle}'
+            seed.resources = options[:resources] || [".storyboard", ".xib", ".strings", ".xcassets", ".bundle"]
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
-            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets,bundle}'
+            seed.resources = options[:resources] || [".storyboard", ".xib", ".strings", ".xcassets", ".bundle"]
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
@@ -343,13 +344,13 @@ module Seeds
                 "#{repo}: Version and commit are both specified."
             end
             seed.version = tag
-            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
-            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
+            seed.files = options[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets,bundle}'
+            seed.resources = options[:resources] || [".storyboard", ".xib", ".strings", ".xcassets", ".bundle"]
             seed.exclude_files = options[:exclude_files] || []
           elsif tag.is_a?(Hash)
             seed.commit = tag[:commit][0..6]
-            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets}'
-            seed.bundle_files = options[:bundle_files] || [".storyboard", ".xib", ".strings", ".xcassets"]
+            seed.files = tag[:files] || '**/*.{h,m,mm,swift,storyboard,xib,strings,xcassets,bundle}'
+            seed.resources = options[:resources] || [".storyboard", ".xib", ".strings", ".xcassets", ".bundle"]
             seed.exclude_files = options[:exclude_files] || []
           end
           if seed.files.kind_of?(String)
@@ -639,7 +640,7 @@ module Seeds
             next if not seed_names.include?(file.parent.name)
             uuid = Xcodeproj::uuid_with_name "#{target.name}:#{file.name}"
                
-            if self.seeds[seed_names].bundle_files.any? { |s| file.name.end_with? s }
+            if self.seeds[seed_names].resources.any? { |s| file.name.end_with? s }
               bundle.add_file_reference_with_uuid(file, uuid, true)
             else 
               phase.add_file_reference_with_uuid(file, uuid, true)
